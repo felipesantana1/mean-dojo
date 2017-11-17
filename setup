@@ -1,0 +1,268 @@
+________________________________________SETUP________________________________________
+// Create project folder
+// Inside project folder create server folder, server.js
+// Inside server folder create config folder, controllers folder, models folder
+// Inside project folder
+npm init -y
+npm install [NODE_MODULE] --save // for all express node modules (or copy package.json first)
+// required node modules: express, body-parser, mongoose
+// optionals include express-session, bcrypt-as-promised
+// Add .gitignore with /node_modules
+ng new [NAME] --routing // NAME can be "client" or "public", this guide uses public
+
+________________________________________EXPRESS________________________________________
+// server.js:
+var express=require("express");
+var app=express();
+var path=require("path");
+var bodyParser=require("body-parser");
+app.use(express.static(path.join(__dirname, "./static")));
+// link to client or public dist folder
+app.use(express.static(path.join(__dirname, '/public/dist')));
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json());
+require('./server/config/mongoose.js');
+var routes_setter=require('./server/config/routes.js');
+routes_setter(app);
+app.listen(6789, function(){
+    console.log("listening on port 6789");
+});
+
+// ./server/config/mongoose.js:
+var mongoose=require('mongoose');
+var fs=require('fs');
+var path=require('path');
+// connect to database by name
+mongoose.connect("mongodb://localhost/[DATABASE_NAME]");
+var models_path=path.join(__dirname, './../models');
+fs.readdirSync(models_path).forEach(function(file){
+	if(file.indexOf('.js')>=0){
+	  require(models_path+'/'+file);
+	};
+});
+
+// ./server/config/routes.js:
+// require controllers as variables
+var [controller]=require('../controllers/[controller_PLURAL].js');
+// if more than one controller, continue to require
+var [controller2]=require('../controllers/[controller2_PLURAL].js');
+module.exports=function(app){
+	// routes here, general format:
+	app.get("/[PATH]", function(req, res){
+		[controller].[METHOD](req, res);
+	});
+	app.post("/[PATH]", function(req, res){
+		[controller].[METHOD2](req, res);
+	});
+	app.all("*", (req,res,next) => {
+        res.sendFile(path.resolve("./public/dist/index.html"));
+    });
+};
+
+// For EACH controller ./server/controllers/[controller_PLURAL].js:
+var mongoose=require('mongoose');
+var [Model]=mongoose.model("[Model]");
+module.exports={
+	// controller methods here, general format guide:
+	// general read query:
+	[METHOD]: function(req, res){
+		[Model].[MONGOOSE_READ_METHOD]([DOCUMENT_QUERY], function(err, [DOCUMENTs]){
+			if(err){
+				// do something with err to tell Angular it failed, usually:
+				res.json(err);
+			}else{
+				// do something with [DOCUMENTs], usually passing it to Angular:
+				res.json([DOCUMENTs]);
+				// or edit and save mongoose methods, etc.
+			};
+		});
+	},
+	// general create query:
+	[METHOD2]: function(req, res){
+		// use field and data from req, such as req.body, or manual
+		var [INSTANCE]=new [Model]({[FIELD]:[DATA]});
+		[INSTANCE].[MONGOOSE_CREATE_METHOD](function(err){
+			if(err){
+				// do something with err to tell Angular it failed, usually:
+				res.json(err);
+			}else{
+				// pass custom success_object or string to show success:
+				res.json(success_object);
+			};
+		});
+	},
+	// some other queries that overwrite:
+	[METHOD1]: function(req, res){
+		[Model].[MONGOOSE_OVERWRITE_METHOD]([DOCUMENT_QUERY], function(err){
+			if(err){
+				// do something with err to tell Angular it failed, usually:
+				res.json(err);
+			}else{
+				// pass custom success_object or string to show success:
+				res.json(success_object);
+			};
+		});
+	}
+};
+
+// For EACH model ./server/models/[Model].js:
+var mongoose=require('mongoose');
+var [Model]Schema=new mongoose.Schema({
+	// fields with validations here. Validations NOT necessary for exam, just Angular validations
+	[FIELD1]: {type: [TYPE], [VALIDATOR1]: [RESTRICTIONS, ERROR_MESSAGE], [VALIDATOR2]: [RESTRICTIONS, ERROR_MESSAGE]},
+	[FIELD2]: {type: [TYPE], [VALIDATOR1]: [RESTRICTIONS, ERROR_MESSAGE]}
+	// additional fields with validations
+}, {timestamps: true});
+// timestamps optional, makes createdAt and updatedAt, can customize names
+mongoose.model("[Model]", [Model]Schema);
+
+________________________________________ANGULAR________________________________________
+// In public (or client) folder, generate components and service
+// If nesting, remember to generate component in other component
+ng g c [Component1_NAME]
+ng g c [Component2_NAME]
+ng g s [Service_NAME]
+// change index.html title from public or client if wanted
+
+// app-routing.module.ts:
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+// import EVERY component EXCEPT AppComponent, copy from app.module.ts for ease:
+import { [Component1_NAME]Component } from './[component1_NAME]/[component1_NAME].component';
+import { [Component2_NAME]Component } from './[component2_NAME]/[component2_NAME].component';
+// etc...
+const routes: Routes = [
+	// routes here, general formats:
+	{path: "", pathMatch: "full", component: [Component1_NAME]Component},
+	// redirects, pathMatch is optional if unique paths
+	{path: "[PATH]", redirectTo: "[REDIRECT_PATH]"},
+	// with parameters
+	{path: "[PATH]/:[PARAM]", component: [Component2_NAME]Component},
+	// must leave out pathMatch if routes and components are nested
+	{path: "[PATH_WITH_NESTED]", component: [Component2_NAME]Component, children:[
+		{path: "[PATH1_NESTED]", component: [NESTED_Component1_NAME]Component},
+		{path: "[PATH2_NESTED]", component: [NESTED_Component2_NAME]Component}
+	]}
+];
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+// app.module.ts
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+// other compoents should all be imported here automatically
+// import FormsModule, HttpModule, and service
+import { FormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
+import { [Service_NAME]Service } from './[service_NAME].service';
+@NgModule({
+  declarations: [
+    AppComponent
+	// components should automatically be here
+  ],
+  imports: [
+    BrowserModule,
+	AppRoutingModule,
+	// include Forms and Http imports:
+    FormsModule,
+    HttpModule
+  ],
+  // include service as a provider
+  providers: [[Service_NAME]Service],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+// [Service_NAME].service.ts
+import { Injectable } from '@angular/core';
+// import HttpModule
+import { Http } from '@angular/http';
+@Injectable()
+export class [Service_NAME]Service {
+	// declare variables here
+	// inject HttpModule
+	constructor(private _http: Http) {
+		// can make an initial call here in needed
+	}
+	// methods for requests here, general format, data isn't always needed, using callback recommended:
+	[methodName](data, callback){
+		this._http.[HTTP_VERB]('[URL_OR_NODE_ROUTE]', data).subscribe(
+			(res)=>{
+				// assign service variables, etc.
+				callback(res.json());
+			},
+			(err)=>{
+				// not connecting to node_server, either log or still pass info
+				console.log(err);
+			}
+		);
+	};
+	// additional methods as needed
+}
+
+// app.component.css and app.component.ts usually doesn't need changes, optional root settings
+// app.component.html needs a minimum of <router-outlet></router-outlet>
+
+// add [FORM_Model].ts if components using a form model (should match node models for ease of use):
+export class [FORM_Model]{
+	constructor(
+		public [FIELD1]: [TYPE]=[DEFAULT_VALUE],
+		public [FIELD2]: [TYPE]=[DEFAULT_VALUE]
+		// etc
+	){}
+}
+
+// For each other component.ts:
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+// import service, any models if using a form model, activated route if we want to read the route, and router if wanting to redirect in functions
+// adjust paths as necessary
+import { [Service]Service } from '../[service].service';
+import { [FORM_Model] } from './../FORM_Model';
+import { ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
+@Component({
+  selector: 'app-note',
+  templateUrl: './[component_NAME].component.html',
+  styleUrls: ['./[component1_NAME].component.css'],
+  encapsulation: ViewEncapsulation.None
+})
+export class [Component1_NAME]Component implements OnInit {
+	// declare and assign variables here, for example:
+	variable;
+	form_bound_object=new [FORM_Model]()
+	// inject service and router if needed
+	constructor(private _[Service]Service: [Service]Service, private _route: ActivatedRoute, private _router: Router) {
+		// may make initial calls here
+		this._route.paramMap.subscribe((params)=>{
+			// use params object here
+		})
+	}
+	ngOnInit() {
+		// may make initial calls here
+	}
+	// use functions to call service methods and pass data (optional, needs to be object like a form) and callback, for example:
+	onSubmit(){
+		this._[Service]Service.[Service_METHOD](data, (res)=>{
+			// logic for handling response here
+			// redirect if necessary:
+			this._router.navigateByUrl('[REDIRECT_PATH]');
+		});
+	}
+}
+
+// for component.html, need to fill out to match wireframe and bind to variables, handle validations, etc.
+
+________________________________________LAUNCH_DEV________________________________________
+// Open terminal, run MongoDB
+mongod.exe
+// Open new terminal, build dist folder in public or client folder
+ng build -w
+// Open new terminal, run Node server from project folder
+nodemon server.js
+
+________________________________________DEPLOY_AND_LAUNCH_PROD________________________________________
