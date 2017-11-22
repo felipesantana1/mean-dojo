@@ -14,17 +14,20 @@ module.exports = {
     },
 
     one: function(req, res){
-        Question.findOne({_id: req.params.id}).populate('comments').exec(function(err, recipe){
+        Question.findOne({_id: req.params.id}).populate('answers').exec(function(err, question){
             if(err){
                 res.json(err);
             } else {
-                res.json(recipe);
+                res.json(question);
             }
         });
     },
     
     create: function(req, res){
-        var question = new question(req.body);
+        var question = new Question({
+            quest: req.body.quest,
+            desc: req.body.desc
+        });
         question.save(function(err, question){
             if(err){
                 res.json(err);
@@ -35,7 +38,7 @@ module.exports = {
     },
 
     answer: function(req, res){
-        Question.findOne({_id:req.paramms.id}), function(err, question){
+        Question.findOne({_id:req.params.id}, function(err, question){
             var answer = new Answer(req.body);
             answer._question = question._id;
             answer.save(function(err){
@@ -48,6 +51,17 @@ module.exports = {
                     }
                 });
             });
-        }
+        });
+    },
+
+    update: function(req, res){
+        Question.findByIdAndUpdate(req.params.id, req.body, function(err, question){
+            if(err){
+                console.log(err);
+                res.json(err);
+            } else {
+                res.json(question);
+            }
+        });
     }
 }

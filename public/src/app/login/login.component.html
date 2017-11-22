@@ -1,0 +1,12 @@
+<fieldset class="container-fluid">
+  <legend>Enter Your Name!</legend>
+  <form (submit)="onSubmit()" #formData="ngForm" class="form-inline">
+    <div class="form-group">
+      <label>Name:</label>
+      <input type="text" name="user" class="form-control-plaintext" [(ngModel)]="user" required minlength="3" #name="ngModel">
+      <input type="submit" [disabled]="formData.invalid" class="btn btn-primary">
+    </div>
+  </form>
+  <span *ngIf="name.errors?.required">Name is required!</span>
+  <span *ngIf="name.errors?.minlength">Name must be at leats 3 characters!</span>  
+</fieldset>

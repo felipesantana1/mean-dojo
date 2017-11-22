@@ -1,18 +1,19 @@
 var mongoose = require('mongoose');
-
-var QuestionSchema = mongoose.Schema({
-    content: {type:String, required:[true, "Must enter Question"]},
-    answers: [{type: Schema.Types.ObjectId, ref:'Answer'}]
-}, {timestamps:true});
-
+var Schema = mongoose.Schema;
 var AnswerSchema = mongoose.Schema({
-    name:{type:String, required:[true, "Please enter name"]},
-    answer:{type:String, required:[true, "Please enter your answer"]},
-    detail:String,
-    likes:{type:Number, default:0},
+    user:{type:String, required:[true, "Please enter name"]},
+    text:{type:String, required:[true, "Please enter your answer"]},
+    details: {type:String},
+    likes:{type:Number},
     _question: {type: Schema.Types.ObjectId, ref:'Question'}
 }, {timestamps:true});
 
 mongoose.model("Answer", AnswerSchema);
+
+var QuestionSchema = mongoose.Schema({
+    quest: {type:String, required:[true, "Must enter Question"]},
+    desc: {type:String},
+    answers: [{type: Schema.Types.ObjectId, ref:'Answer'}]
+}, {timestamps:true});
 
 mongoose.model("Question", QuestionSchema);

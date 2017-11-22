@@ -1,0 +1,15 @@
+<button (click)="home()">Home</button>
+<button (click)="logOut()">LogOut</button>
+
+<h1>New Question</h1>
+  <form (submit)="onSubmit()" #formData="ngForm">
+    <label for="question">Question:</label>
+    <input type="text" name="quest" required [(ngModel)]="question.quest" minlength="10" #quest="ngModel">
+    <label for="desc">Description:</label>
+    <input type="text" name="desc" [(ngModel)]="question.desc" #desc="ngModel">
+    <a [routerLink]="['/dash']"><button>Cancel</button></a>
+    <span *ngIf="quest.errors?.required">Question is required!</span>
+    <span *ngIf="quest.errors?.minlength">Question must be at leats 10 characters!</span> 
+    <input type="submit" [disabled]="formData.invalid">
+    
+  </form>

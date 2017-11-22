@@ -1,0 +1,16 @@
+<a [routerLink]="['/questions', id]"><button>Go Back to Question</button></a>
+
+<h1 *ngIf="question">{{question.quest}}</h1>
+<p *ngIf="question">{{question.desc}}</p>
+
+<form (submit)="onSubmit(id)" #formData="ngForm">
+  <label for="text">Your Answer:</label>
+  <input type="text" name="text" required [(ngModel)]="answer.text" minlength="5" #text="ngModel">
+  <br>
+  <label for="details">Supporting Detail:</label>
+  <input type="text" name="details" [(ngModel)]="answer.details" #details="ngModel">
+  <input type="submit" [disabled]="formData.invalid">
+  <a [routerLink]="['/dash']"><button>Cancel</button></a>
+  <span *ngIf="text.errors?.required">Question is required!</span>
+  <span *ngIf="text.errors?.minlength">Answer must be at leats 5 characters!</span> 
+</form>

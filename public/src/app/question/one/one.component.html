@@ -1,0 +1,18 @@
+<div class="btn-group" role="group" aria-label="Basic example">
+<a [routerLink]="['/dash']"><button type="button" class="btn btn-primary">Home</button></a>
+<a [routerLink]="['/questions/', id, 'answer']"><button type="button" class="btn btn-primary">Answer this Question</button></a>
+<button (click)="logOut()" type="button" class="btn btn-primary">LogOut</button>
+</div>
+
+<div class="border border-dark rounded"><h1 *ngIf="question">{{question.quest}}</h1>
+<p *ngIf="question">{{question.desc}}</p></div>
+
+
+<h3 class="p-3 mb-2 bg-secondary text-white">Answers</h3>
+
+<span *ngFor="let answer of question?.answers; let idx=index">
+<p class="list-group-item">Name: {{answer.user}}</p>
+<p class="list-group-item">Answer: {{answer.text}}</p>
+<p class="list-group-item">Deatils: {{answer.details}}</p>
+<p class="list-group-item">Likes: {{answer.likes}} <button (click)="like(idx)" class="btn btn-primary">Like</button></p>
+</span>
